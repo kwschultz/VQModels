@@ -13,3 +13,7 @@
 *.a
 
 .DS_Store
+*_greens.h5
+block_info.dat
+params.d
+vc
