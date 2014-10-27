@@ -1,4 +1,4 @@
-VCModels
+VQModels
 =====================================================================
 
 Fault models for use with Virtual Quake (formerly Virtual California)
@@ -21,3 +21,7 @@ Fault models for use with Virtual Quake (formerly Virtual California)
     - "*_Friction.dat" friction file in EQSIM format
     - "*_Geometry.dat" fault model in EQSIM format
     - "*.kml" Google Earth fault model file
+    
+    
+For details about the EQSIM format, see the Virtual Quake Users' Manual
+available for download at http://geodynamics.org/cig/software/vq/
