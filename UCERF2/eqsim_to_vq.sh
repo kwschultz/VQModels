@@ -19,7 +19,7 @@ EDITOR_ARGS="--import_eqsim_geometry=$GEOFILE --import_eqsim_friction=$FRICFILE"
     --export_file_type=text \
     --export_file=ALLCAL2_VQmeshed_3km.h5 \
     --export_file_type=hdf5 \
-    --export_file=ALLCAL2_VQmeshed_3km.kml \
+    --export_file=ALLCAL2_VQmeshed_3km_test_red.kml \
     --export_file_type=kml \
     --merge_duplicate_verts \
     --delete_unused 
