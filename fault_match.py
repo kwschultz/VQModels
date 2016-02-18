@@ -3,19 +3,22 @@ import quakelib
 import re, sys, collections
 
 # Change this to match your computer/file system
-WORKING_DIR = '/Users/kasey/'
-
+WORKING_DIR = '/Users/kasey/VQModels/'
 ASEISMIC_CUT = 0.11
+STRESS_DROP = 0.5
+SAVE_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Geometry.dat'
+SAVE_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Friction.dat'
 
 # Original UCERF 3 model
-UCERF3 = WORKING_DIR+'VQModels/UCERF3/UCERF3_VQmeshed_from_EQSIM_taper_renorm_drops0-6.h5'
+UCERF3 = WORKING_DIR+'UCERF3/UCERF3_EQSIM_FM3_1_ZENGBB_Geometry.dat'
+UCERF3_fric = WORKING_DIR+'UCERF3/UCERF3_EQSIM_Friction.dat'
 model = quakelib.ModelWorld()
+model.read_files_eqsim(UCERF3, "", UCERF3_fric, "none")
 #model.read_file_ascii(UCERF3)
-model.read_file_hdf5(UCERF3)
+#model.read_file_hdf5(UCERF3)
 fault_ids = model.getFaultIDs()
 
 # Creating a new model world for the modified faults
-new_file_txt = WORKING_DIR+'VQModels/UCERF3/UCERF3_ReFaulted_AseismicCut0-11_taper_renorm_drops0-6.txt'
 new_model = quakelib.ModelWorld()
 
 uniq_faults = {}
@@ -126,12 +129,21 @@ for ele_id in model.getElementIDs():
 
  
 # ============ OUTPUT THE MODIFIED MODEL ==============
+#new_model.insert(model)
+model.write_files_eqsim(SAVE_FILE_GEO, "", SAVE_FILE_FRIC)
+print("New model files written: {}, {}".format(SAVE_FILE_GEO,SAVE_FILE_FRIC))
+
+
+
+
+'''
 new_model.insert(model)
 new_model.create_faults('none')
 new_model.compute_stress_drops(model.stressDropFactor())
 new_model.setStressDropFactor(model.stressDropFactor())
 new_model.write_file_ascii(new_file_txt)
-print("New model file written: {}".format(new_file_txt))
 
+print("New model file written: {}".format(new_file_txt))
+'''
 
     
