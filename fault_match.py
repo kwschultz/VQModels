@@ -8,6 +8,8 @@ ASEISMIC_CUT = 0.11
 STRESS_DROP = 0.5
 SAVE_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Geometry.dat'
 SAVE_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Friction.dat'
+SAVE_FILE_TEXT = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted.txt'
+
 
 # Original UCERF 3 model
 UCERF3 = WORKING_DIR+'UCERF3/UCERF3_EQSIM_FM3_1_ZENGBB_Geometry.dat'
@@ -129,9 +131,11 @@ for ele_id in model.getElementIDs():
 
  
 # ============ OUTPUT THE MODIFIED MODEL ==============
-#new_model.insert(model)
-model.write_files_eqsim(SAVE_FILE_GEO, "", SAVE_FILE_FRIC)
-print("New model files written: {}, {}".format(SAVE_FILE_GEO,SAVE_FILE_FRIC))
+model.create_faults_minimal()  # Create the fault objects but don't worry about the area/DAS/etc.
+model.write_file_ascii(SAVE_FILE_TEXT)
+print("New model file written: {}".format(SAVE_FILE_TEXT))
+#model.write_files_eqsim(SAVE_FILE_GEO, "", SAVE_FILE_FRIC)
+#print("New model files written: {}, {}".format(SAVE_FILE_GEO,SAVE_FILE_FRIC))
 
 
 

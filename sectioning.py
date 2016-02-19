@@ -1,20 +1,28 @@
 import numpy as np
 import quakelib, sys, collections, re
-import scipy
-from scipy.integrate import quad
-from scipy.optimize import fsolve
-from scipy.interpolate import UnivariateSpline
 from shapely.geometry import Point, LineString, MultiPoint
 from matplotlib import pyplot as plt
 from shapely.ops import linemerge
+
+ASEISMIC_CUT = 0.11
 
 WORKING_DIR = '/Users/kasey/VQModels/'
 UCERF3 = WORKING_DIR+'UCERF3/UCERF3_VQmeshed_from_EQSIM_AseismicCut_0-11_ReFaulted_taper_renorm_drops0-7.txt'
 OUTFILE = WORKING_DIR+'UCERF3/UCERF3_VQmeshed_from_EQSIM_AseismicCut_0-11_ReFaulted_taper_renorm_drops0-7_ReSectioned.txt'
 OUTKML = WORKING_DIR+'UCERF3/UCERF3_VQmeshed_from_EQSIM_AseismicCut_0-11_ReFaulted_taper_renorm_drops0-7_ReSectioned.kml'
 
+
+UCERF3_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Geometry.dat'
+UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Friction.dat'
+UCERF3_FILE_TEXT = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Geometry.txt'
+
+FINAL_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_'+str(ASEISMIC_CUT)+'_Geometry.dat'
+FINAL_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_'+str(ASEISMIC_CUT)+'_Friction.dat'
+FINAL_FILE_TEXT = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_'+str(ASEISMIC_CUT)+'.txt'
+
 model = quakelib.ModelWorld()
-model.read_file_ascii(UCERF3)
+#model.read_file_ascii(UCERF3)
+model.read_files_eqsim(UCERF3_FILE_GEO, "", UCERF3_FILE_FRIC, "none")
 
 fault_ids = model.getFaultIDs()
 sys.stdout.write("Read {} faults...\n".format(len(fault_ids)))
@@ -37,7 +45,6 @@ for elem,section in elem_to_section_map.items():
 section_first_elements = {sec:min(elements) for sec,elements in section_elements.items()}
 section_last_elements = {sec:max(elements) for sec,elements in section_elements.items()}
 
-#for fid in fault_sections.keys():
 for fid in fault_ids:
     section_lines = []
     sec_distances = {}
@@ -78,9 +85,13 @@ for fid in fault_ids:
             model.section(sid).set_id(first_section_id+i)
 
 
-model.create_faults("none")
-model.write_file_ascii(OUTFILE)
-model.write_file_kml(OUTKML)
+model.create_faults_minimal()  # Create the fault objects but don't worry about the area/DAS/etc.
+model.write_files_eqsim(FINAL_FILE_GEO, "", FINAL_FILE_FRIC)
+print("New model files written: {}, {}".format(FINAL_FILE_GEO, FINAL_FILE_FRIC))
+
+#model.create_faults("none")
+#model.write_file_ascii(OUTFILE)
+#model.write_file_kml(OUTKML)
 
 #for i,line in enumerate(lines_merged):
 #    x,y = line.xy
