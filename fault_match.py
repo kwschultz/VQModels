@@ -12,7 +12,7 @@ SAVE_FILE_TEXT = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT
 
 
 # Original UCERF 3 model
-UCERF3 = WORKING_DIR+'UCERF3/UCERF3_EQSIM_FM3_1_ZENGBB_Geometry.dat'
+UCERF3 = WORKING_DIR+'UCERF3/UCERF3_ZENGBB_EQSIM_improved.txt'
 UCERF3_fric = WORKING_DIR+'UCERF3/UCERF3_EQSIM_Friction.dat'
 model = quakelib.ModelWorld()
 model.read_files_eqsim(UCERF3, "", UCERF3_fric, "none")
@@ -25,6 +25,7 @@ new_model = quakelib.ModelWorld()
 
 uniq_faults = {}
 uniq_faults_combined = {}
+new_fault_names = {}
 
 print("------Read "+str(len(model.getSectionIDs()))+" Sections-----")
 print("------     belonging to "+str(len(fault_ids))+" Faults-----")
@@ -40,7 +41,6 @@ REGEX_strings = ['_Subsection_(\d)+', '_2011','_CFM', '_Extension', '_extension'
                 '_San_Fernando$', '_Offshore$','_Onshore$']
 
 
-
 # The following faults have multiply named sections containing the following key words, 
 #   its easier to match these than cut out each instance of the variant names.
 special_faults = ['Calaveras','Contra_Costa','Death_Valley','Elsinore','Garlock',
@@ -51,7 +51,6 @@ assert(len(special_fault_ids)==len(special_faults))
 # Input the special faults as the first entries in the combined uniq_faults dictionary
 for i, name in enumerate(special_faults):
     uniq_faults_combined[name] = special_fault_ids[i]
-
 
 
 # Loop once over sections to determine the unique fault names and IDs
@@ -131,11 +130,11 @@ for ele_id in model.getElementIDs():
 
  
 # ============ OUTPUT THE MODIFIED MODEL ==============
-model.create_faults_minimal()  # Create the fault objects but don't worry about the area/DAS/etc.
-model.write_file_ascii(SAVE_FILE_TEXT)
-print("New model file written: {}".format(SAVE_FILE_TEXT))
-#model.write_files_eqsim(SAVE_FILE_GEO, "", SAVE_FILE_FRIC)
-#print("New model files written: {}, {}".format(SAVE_FILE_GEO,SAVE_FILE_FRIC))
+#model.create_faults_minimal()  # Create the fault objects but don't worry about the area/DAS/etc.
+#model.write_file_ascii(SAVE_FILE_TEXT)
+#print("New model file written: {}".format(SAVE_FILE_TEXT))
+model.write_files_eqsim(SAVE_FILE_GEO, "", SAVE_FILE_FRIC)
+print("New model files written: {}, {}".format(SAVE_FILE_GEO,SAVE_FILE_FRIC))
 
 
 
