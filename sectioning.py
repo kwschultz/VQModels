@@ -171,25 +171,6 @@ for old_sec_id, new_sec_id in new_sec_id_map.items():
 model.apply_remap(section_remap)
 
 
-
-####  Create the new world to insert the edited sections into        
-#new_world = quakelib.ModelWorld()
-
-## Keep the vertices the same
-#for vert_id in model.getVertexIDs():
-#    new_world.insert(model.vertex(vert_id))
-#
-### Keep the elements the same
-#for ele_id in model.getElementIDs():
-#    new_world.insert(model.element(ele_id))
-    
-## Remap the sections    
-#for old_sec_id, new_sec_id in new_sec_id_map.items():
-#    # First, change the old id to the new id
-#    model.section(old_sec_id).set_id(new_sec_id)
-#    # Then insert the section, it's newly changed id will be used as it's new index in new_world._sections
-#    new_world.insert(model.section(old_sec_id))
-
         
         
 #for i,line in enumerate(lines_merged):
@@ -215,17 +196,4 @@ model.apply_remap(section_remap)
 model.write_files_eqsim(FINAL_FILE_GEO, "", FINAL_FILE_FRIC)
 print("New model files written: {}, {}".format(FINAL_FILE_GEO, FINAL_FILE_FRIC))
 
-
-
-
-
-
-
-
-
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-#model.create_faults("none")
-#model.write_file_ascii(OUTFILE)
-#model.write_file_kml(OUTKML)
 
