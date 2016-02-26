@@ -130,39 +130,24 @@ for sec_id in section_elements_by_DAS.keys():
     fault_vs_section_strike_diff = abs(fault_mean_strike-section_strike)
     fault_vs_rev_section_strike_diff = abs(fault_mean_strike-section_strike_reversed)
     
-    if (fault_vs_rev_section_strike_diff < fault_vs_section_strike_diff): #and fault_vs_rev_section_strike_diff < 95:
+    if (fault_vs_rev_section_strike_diff < fault_vs_section_strike_diff): 
         print("--Section {:45s} is reversed\tfault strike = {:6.2f}\tsection strike = {:6.2f} ({:.2f})\treversed section strike = {:6.2f} ({:.2f})".format(model.section(sec_id).name(),fault_mean_strike,section_strike,fault_vs_section_strike_diff, section_strike_reversed,fault_vs_rev_section_strike_diff))
         winning_diffs.append(fault_vs_rev_section_strike_diff)
         num_secs_reversed += 1.0
-        #for i in range(len())
-        #element_remap.remap_element(old_sec_id, new_sec_id)
+        for i in range(len(section_elements[sec_id])):
+            old_id = current_element_order[i]  # element IDs from low to hi
+            new_id = reversed_element_order[i]  # element IDs from hi to low
+            element_remap.remap_element(old_id, new_id)
         
 print("Found that {:.2f}% of sections are reversed.".format(num_secs_reversed/float(len(section_ids))))
 
-
 #plt.hist(winning_diffs,bins=100)
-#plt.show()
+#plt.show()            
 
-
-
-####################
-sys.exit()
-####################
-
-
-            
-
-
-
-
-for old_sec_id, new_sec_id in new_sec_id_map.items():
-    section_remap.remap_section(old_sec_id, new_sec_id)
-
-model.apply_remap(section_remap)
-
+model.apply_remap(element_remap)
 
         
-model.write_files_eqsim(FINAL_FILE_GEO, "", FINAL_FILE_FRIC)
-print("New model files written: {}, {}".format(FINAL_FILE_GEO, FINAL_FILE_FRIC))
+model.write_files_eqsim(FINAL_FINAL_FILE_GEO, "", FINAL_FINAL_FILE_FRIC)
+print("New model files written: {}, {}".format(FINAL_FINAL_FILE_GEO, FINAL_FINAL_FILE_FRIC))
 
 
