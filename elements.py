@@ -23,7 +23,7 @@ FINAL_FINAL_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_R
 FINAL_FINAL_FILE_TEXT = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_'+str(ASEISMIC_CUT)+'.txt'
 
 
-ELEMENT_FILE = WORKING_DIR+'UCERF3/UCERF3_ReElemented_LineSegment.txt'
+#ELEMENT_FILE = WORKING_DIR+'UCERF3/UCERF3_ReElemented_LineSegment.txt'
 
 cmap = plt.get_cmap('Reds')
 norm = mcolor.Normalize(vmin=-.1, vmax=1)
@@ -50,7 +50,8 @@ def strike(x,y):
         return 180.0*angle(vec,north)/np.pi
 
 model = quakelib.ModelWorld()
-model.read_files_eqsim(FINAL_FILE_GEO, "", FINAL_FILE_FRIC, "none")
+model.read_files_eqsim(FINAL_FINAL_FILE_GEO, "", FINAL_FINAL_FILE_FRIC, "none")
+
 
 model.create_faults_minimal()
 fault_ids = model.getFaultIDs()
@@ -60,7 +61,6 @@ sys.stdout.write("Read {} sections...\n".format(len(section_ids)))
 
 elem_to_section_map = {elem_num: model.element(elem_num).section_id() for elem_num in model.getElementIDs()}
 section_elements = {}
-section_elements_by_DAS = dict.fromkeys(section_ids)
 fault_sections = {}
 
 for elem,section in elem_to_section_map.items():
@@ -75,27 +75,12 @@ for elem,section in elem_to_section_map.items():
             fault_sections[fault_id].append(section)
     except KeyError:
         fault_sections[fault_id] = [section]
-        
-section_first_elements = {sec:min(elements) for sec,elements in section_elements.items()}
-section_last_elements = {sec:max(elements) for sec,elements in section_elements.items()}
 
 new_sec_id_map = {}
 fault_mean_strikes = {}
 
 ####  Create the section remap      
 element_remap = quakelib.ModelRemapping()
-
-
-### For each section, compile the groups of elements at each DAS
-for sec_id in section_elements.keys():
-    section_elements_by_DAS[sec_id] = {}
-    sec_elements = section_elements[sec_id]
-    for element_id in sec_elements:
-        this_das = model.element_min_das(element_id)
-        try:
-            section_elements_by_DAS[sec_id][this_das].append(element_id)
-        except KeyError:
-            section_elements_by_DAS[sec_id][this_das] = [element_id]
         
         
 ### For each fault, compute the mean strike using elements of each section
@@ -110,13 +95,10 @@ for fid in fault_ids:
             fault_mean_strike += 180*model.create_sim_element(element_id).strike()/np.pi
     fault_mean_strikes[fid] = fault_mean_strike/float(num_fault_elements)
         
+        
 num_secs_reversed = 0
 winning_diffs = []
-for sec_id in section_elements_by_DAS.keys():
-    #print("------- Section {} -------".format(sec_id))
-    #print(section_elements_by_DAS[sec_id])
-    elements_by_DAS         = section_elements_by_DAS[sec_id]
-    DAS_values              = sorted(elements_by_DAS.keys())
+for sec_id in section_elements.keys():
     current_element_order   = sorted(section_elements[sec_id])
     reversed_element_order  = sorted(section_elements[sec_id], reverse=1)
     first_element_id        = min(section_elements[sec_id])
@@ -141,13 +123,33 @@ for sec_id in section_elements_by_DAS.keys():
         
 print("Found that {:.2f}% of sections are reversed.".format(num_secs_reversed/float(len(section_ids))))
 
+
+#############
+#sys.exit()
+#############
+
+
+
 #plt.hist(winning_diffs,bins=100)
 #plt.show()            
 
 model.apply_remap(element_remap)
-
         
 model.write_files_eqsim(FINAL_FINAL_FILE_GEO, "", FINAL_FINAL_FILE_FRIC)
 print("New model files written: {}, {}".format(FINAL_FINAL_FILE_GEO, FINAL_FINAL_FILE_FRIC))
 
 
+#section_first_elements = {sec:min(elements) for sec,elements in section_elements.items()}
+#section_last_elements = {sec:max(elements) for sec,elements in section_elements.items()}
+
+### For each section, compile the groups of elements at each DAS
+#section_elements_by_DAS = dict.fromkeys(section_ids)
+#for sec_id in section_elements.keys():
+#    section_elements_by_DAS[sec_id] = {}
+#    sec_elements = section_elements[sec_id]
+#    for element_id in sec_elements:
+#        this_das = model.element_min_das(element_id)
+#        try:
+#            section_elements_by_DAS[sec_id][this_das].append(element_id)
+#        except KeyError:
+#            section_elements_by_DAS[sec_id][this_das] = [element_id]
