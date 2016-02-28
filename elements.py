@@ -50,7 +50,7 @@ def strike(x,y):
         return 180.0*angle(vec,north)/np.pi
 
 model = quakelib.ModelWorld()
-model.read_files_eqsim(FINAL_FINAL_FILE_GEO, "", FINAL_FINAL_FILE_FRIC, "none")
+model.read_files_eqsim(FINAL_FILE_GEO, "", FINAL_FILE_FRIC, "none")
 
 
 model.create_faults_minimal()
@@ -62,6 +62,7 @@ sys.stdout.write("Read {} sections...\n".format(len(section_ids)))
 elem_to_section_map = {elem_num: model.element(elem_num).section_id() for elem_num in model.getElementIDs()}
 section_elements = {}
 fault_sections = {}
+sections_to_reverse = []
 
 for elem,section in elem_to_section_map.items():
     try:
@@ -75,11 +76,29 @@ for elem,section in elem_to_section_map.items():
             fault_sections[fault_id].append(section)
     except KeyError:
         fault_sections[fault_id] = [section]
+        
+        
+
+section_first_elements = {sec:min(elements) for sec,elements in section_elements.items()}
+section_last_elements = {sec:max(elements) for sec,elements in section_elements.items()}
+
+## For each section, compile the groups of elements at each DAS
+section_elements_by_DAS = dict.fromkeys(section_ids)
+for sec_id in section_elements.keys():
+    section_elements_by_DAS[sec_id] = {}
+    sec_elements = section_elements[sec_id]
+    for element_id in sec_elements:
+        this_das = model.element_min_das(element_id)
+        try:
+            section_elements_by_DAS[sec_id][this_das].append(element_id)
+        except KeyError:
+            section_elements_by_DAS[sec_id][this_das] = [element_id]
+        
 
 new_sec_id_map = {}
 fault_mean_strikes = {}
 
-####  Create the section remap      
+####  Create the element remap      
 element_remap = quakelib.ModelRemapping()
         
         
@@ -105,30 +124,65 @@ for sec_id in section_elements.keys():
     last_element_id         = max(section_elements[sec_id])
     first_element_xyz       = model.vertex(model.element(first_element_id).vertex(0)).xyz()/1000.0
     last_element_xyz        = model.vertex(model.element(last_element_id).vertex(0)).xyz()/1000.0
-    section_strike          = strike(first_element_xyz[0]-last_element_xyz[0], first_element_xyz[1]-last_element_xyz[1])
-    section_strike_reversed = strike(last_element_xyz[0]-first_element_xyz[0], last_element_xyz[1]-first_element_xyz[1])
+    section_strike_reversed = strike(first_element_xyz[0]-last_element_xyz[0], first_element_xyz[1]-last_element_xyz[1])
+    section_strike          = strike(last_element_xyz[0]-first_element_xyz[0], last_element_xyz[1]-first_element_xyz[1])
     fault_mean_strike       = fault_mean_strikes[model.section(sec_id).fault_id()]
     
     fault_vs_section_strike_diff = abs(fault_mean_strike-section_strike)
     fault_vs_rev_section_strike_diff = abs(fault_mean_strike-section_strike_reversed)
     
     if (fault_vs_rev_section_strike_diff < fault_vs_section_strike_diff): 
-        print("--Section {:45s} is reversed\tfault strike = {:6.2f}\tsection strike = {:6.2f} ({:.2f})\treversed section strike = {:6.2f} ({:.2f})".format(model.section(sec_id).name(),fault_mean_strike,section_strike,fault_vs_section_strike_diff, section_strike_reversed,fault_vs_rev_section_strike_diff))
+        #print("--Section {:45s} is reversed\tfault strike = {:6.2f}\tsection strike = {:6.2f} ({:.2f})\treversed section strike = {:6.2f} ({:.2f})".format(model.section(sec_id).name(),fault_mean_strike,section_strike,fault_vs_section_strike_diff, section_strike_reversed,fault_vs_rev_section_strike_diff))
         winning_diffs.append(fault_vs_rev_section_strike_diff)
         num_secs_reversed += 1.0
-        for i in range(len(section_elements[sec_id])):
-            old_id = current_element_order[i]  # element IDs from low to hi
-            new_id = reversed_element_order[i]  # element IDs from hi to low
-            element_remap.remap_element(old_id, new_id)
+        sections_to_reverse.append(sec_id)
+        print("------- {} -------".format(model.section(sec_id).name()))
         
 print("Found that {:.2f}% of sections are reversed.".format(num_secs_reversed/float(len(section_ids))))
+
+
+
+### Go through the section elements grouped by DAS and create a new dictionary 
+###   indexed by the minimum element id at each DAS subtracted by the sections minimum element id.
+### This computes the current index of each DAS group. In the last loop over sections, we will reverse this index
+###   for those sections whose element IDs need to be reversed.
+section_elements_by_DAS_index = dict.fromkeys(section_elements_by_DAS.keys(), {})
+for sec_id in section_elements_by_DAS.keys():
+    sec_first_element_id = section_first_elements[sec_id]
+    num_DAS_groups       = len(section_elements_by_DAS[sec_id].keys())
+    #print("Section {} has {} DAS groups...".format(sec_id,num_DAS_groups))
+    section_elements_by_DAS_index[sec_id] = {}
+
+    for DAS in section_elements_by_DAS[sec_id].keys():
+        ## Assuming here that the number of elements at each DAS is constant across a section.
+        num_elements_at_this_DAS = len(section_elements_by_DAS[sec_id][DAS])
+        first_element_at_this_DAS = int(min(section_elements_by_DAS[sec_id][DAS]))
+        this_DAS_index = int(first_element_at_this_DAS - sec_first_element_id)/int(num_elements_at_this_DAS) 
+        #print("At DAS = {} there are {} elements...".format(DAS,num_elements_at_this_DAS))
+        section_elements_by_DAS_index[sec_id][this_DAS_index] = section_elements_by_DAS[sec_id][DAS]
+        
+                
+    #print('{}\n'.format(section_elements_by_DAS_index[sec_id]))
+
+
+
+### Go through the section elements grouped by DAS index and determine the new element numbers
+for sec_id in section_elements_by_DAS_index.keys():
+    if sec_id in sections_to_reverse:
+        sec_first_element_id = section_first_elements[sec_id]
+        num_DAS_groups = len(section_elements_by_DAS_index[sec_id].keys())
+        for DAS_index in section_elements_by_DAS_index[sec_id].keys():
+            num_elements_at_this_DAS = len(section_elements_by_DAS_index[sec_id][DAS_index])
+            new_DAS_index = (num_DAS_groups-1) - DAS_index  # This reverses the order of the DAS_index
+            for i,ele_id in enumerate(section_elements_by_DAS_index[sec_id][DAS_index]):
+                new_id = sec_first_element_id + (new_DAS_index*num_elements_at_this_DAS) + i
+                element_remap.remap_element(ele_id, new_id)
+
 
 
 #############
 #sys.exit()
 #############
-
-
 
 #plt.hist(winning_diffs,bins=100)
 #plt.show()            
@@ -139,17 +193,3 @@ model.write_files_eqsim(FINAL_FINAL_FILE_GEO, "", FINAL_FINAL_FILE_FRIC)
 print("New model files written: {}, {}".format(FINAL_FINAL_FILE_GEO, FINAL_FINAL_FILE_FRIC))
 
 
-#section_first_elements = {sec:min(elements) for sec,elements in section_elements.items()}
-#section_last_elements = {sec:max(elements) for sec,elements in section_elements.items()}
-
-### For each section, compile the groups of elements at each DAS
-#section_elements_by_DAS = dict.fromkeys(section_ids)
-#for sec_id in section_elements.keys():
-#    section_elements_by_DAS[sec_id] = {}
-#    sec_elements = section_elements[sec_id]
-#    for element_id in sec_elements:
-#        this_das = model.element_min_das(element_id)
-#        try:
-#            section_elements_by_DAS[sec_id][this_das].append(element_id)
-#        except KeyError:
-#            section_elements_by_DAS[sec_id][this_das] = [element_id]
