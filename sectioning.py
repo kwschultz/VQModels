@@ -6,19 +6,15 @@ import matplotlib.colorbar as mcolorbar
 from matplotlib import pyplot as plt
 from shapely.ops import linemerge, unary_union
 
-ASEISMIC_CUT = 0.11
-
 WORKING_DIR = '/Users/kasey/VQModels/'
 
-UCERF3_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Geometry.dat'
-UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Friction.dat'
-UCERF3_FILE_TEXT = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Geometry.txt'
+UCERF3_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_0.11_ReFaulted_Geometry.dat'
+UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_0.11_ReFaulted_Friction.dat'
 
-FINAL_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_'+str(ASEISMIC_CUT)+'_Geometry.dat'
-FINAL_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_'+str(ASEISMIC_CUT)+'_Friction.dat'
-FINAL_FILE_TEXT = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_'+str(ASEISMIC_CUT)+'.txt'
+FINAL_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_0.11_Geometry.dat'
+FINAL_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_0.11_Friction.dat'
 
-SECTION_FILE = WORKING_DIR+'UCERF3/UCERF3_ReSectioned_SectionList_LineSegment.txt'
+#SECTION_FILE = WORKING_DIR+'UCERF3/UCERF3_ReSectioned_SectionList_LineSegment.txt'
 
 cmap = plt.get_cmap('Reds')
 norm = mcolor.Normalize(vmin=-.1, vmax=1)
@@ -72,7 +68,7 @@ section_last_elements = {sec:max(elements) for sec,elements in section_elements.
 new_sec_id_map = {}
 
 
-sections = open(SECTION_FILE,'w')
+#sections = open(SECTION_FILE,'w')
 for fid in fault_ids:
     section_lines = []
     section_points_dict = {}
@@ -117,7 +113,7 @@ for fid in fault_ids:
                 point_distances[sec_points[i].distance(sec_points[j])] = [i,j]
                 
         max_i, max_j = point_distances[max(point_distances.keys())]
-        print("Found max distance of {}".format(max(point_distances.keys())))
+        #print("Found max distance of {}".format(max(point_distances.keys())))
         endpoint_i = sec_points[max_i]
         endpoint_j = sec_points[max_j]
         
@@ -130,16 +126,16 @@ for fid in fault_ids:
         diff_i_to_j = abs(sec_mean_strike-strike_i_to_j)
         diff_j_to_i = abs(sec_mean_strike-strike_j_to_i)
     
-        print("Mean strike {}".format(sec_mean_strike))
-        print("i->j strike {}".format(strike_i_to_j))
-        print("j->i strike {}".format(strike_j_to_i))
+        #print("Mean strike {}".format(sec_mean_strike))
+        #print("i->j strike {}".format(strike_i_to_j))
+        #print("j->i strike {}".format(strike_j_to_i))
         
         if diff_i_to_j < diff_j_to_i: 
             strike_line = i_to_j
-            print("i->j better match")
+            #print("i->j better match")
         else:
             strike_line = j_to_i
-            print("j->i better match")
+            #print("j->i better match")
         
         
         for i,sid in enumerate(section_ids):
@@ -156,23 +152,31 @@ for fid in fault_ids:
             dist,sid = value
             sys.stdout.write("{} -> {}\t{}\tat\t{}\n".format(sid,first_section_id+i,model.section(sid).name(), dist))
             # Write the ordered sections to file as well for comparing.
-            sections.write("{} -> {}\t{}\tat\t{}\n".format(sid,first_section_id+i,model.section(sid).name(), dist))
-            # Re-assign the section id so it's in order
-            new_sec_id_map[sid] = first_section_id+i
+            #sections.write("{} -> {}\t{}\tat\t{}\n".format(sid,first_section_id+i,model.section(sid).name(), dist))
+            # Be sure not to do anything if it's already in order (used for testing, 
+            #       re run the script on the edited and saved fault model)
+            if sid != first_section_id+i:  
+                # Re-assign the section id so it's in order
+                new_sec_id_map[sid] = first_section_id+i
             
-
 
 ####  Create the section remap      
 section_remap = quakelib.ModelRemapping()
 
-for old_sec_id, new_sec_id in new_sec_id_map.items():
-    section_remap.remap_section(old_sec_id, new_sec_id)
+if len(new_sec_id_map.keys()):
+    for old_sec_id, new_sec_id in new_sec_id_map.items():
+        section_remap.remap_section(old_sec_id, new_sec_id)
 
-model.apply_remap(section_remap)
+    model.apply_remap(section_remap)
+    sys.stdout.write("Applied section ID remapping..")
+
+sys.stdout.write("-=-=-=-=-=-  Remapped IDs for {:.2f}% of sections  -==-=-=-=-=-=\n".format(len(new_sec_id_map.keys())*100.0/len(model.getSectionIDs())))
 
 
-        
-        
+#model.create_faults_minimal()  # Create the fault objects but don't worry about the area/DAS/etc.
+model.write_files_eqsim(FINAL_FILE_GEO, "", FINAL_FILE_FRIC)
+print("New model files written: {}, {}".format(FINAL_FILE_GEO, FINAL_FILE_FRIC))
+
 #for i,line in enumerate(lines_merged):
 #    x,y = line.xy
 #    if i == 0: 
@@ -189,11 +193,4 @@ model.apply_remap(section_remap)
 #plt.plot(x,y,c='b',label="strike line")
 #plt.legend(loc='best',fontsize=10)
 #plt.savefig("shapely_objects_from_trace.png")
-
-        
-
-#model.create_faults_minimal()  # Create the fault objects but don't worry about the area/DAS/etc.
-model.write_files_eqsim(FINAL_FILE_GEO, "", FINAL_FILE_FRIC)
-print("New model files written: {}, {}".format(FINAL_FILE_GEO, FINAL_FILE_FRIC))
-
 

@@ -16,12 +16,8 @@ UCERF3 = WORKING_DIR+'UCERF3/UCERF3_ZENGBB_EQSIM_improved.txt'
 UCERF3_fric = WORKING_DIR+'UCERF3/UCERF3_EQSIM_Friction.dat'
 model = quakelib.ModelWorld()
 model.read_files_eqsim(UCERF3, "", UCERF3_fric, "none")
-#model.read_file_ascii(UCERF3)
-#model.read_file_hdf5(UCERF3)
+model.create_faults_minimal()
 fault_ids = model.getFaultIDs()
-
-# Creating a new model world for the modified faults
-new_model = quakelib.ModelWorld()
 
 uniq_faults = {}
 uniq_faults_combined = {}
@@ -137,16 +133,5 @@ model.write_files_eqsim(SAVE_FILE_GEO, "", SAVE_FILE_FRIC)
 print("New model files written: {}, {}".format(SAVE_FILE_GEO,SAVE_FILE_FRIC))
 
 
-
-
-'''
-new_model.insert(model)
-new_model.create_faults('none')
-new_model.compute_stress_drops(model.stressDropFactor())
-new_model.setStressDropFactor(model.stressDropFactor())
-new_model.write_file_ascii(new_file_txt)
-
-print("New model file written: {}".format(new_file_txt))
-'''
 
     
