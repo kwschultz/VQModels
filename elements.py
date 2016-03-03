@@ -1,45 +1,55 @@
 import numpy as np
-import quakelib, sys, collections, re
+import quakelib, sys, collections, re, math
 from shapely.geometry import Point, LineString, MultiPoint
 import matplotlib.colors as mcolor
 import matplotlib.colorbar as mcolorbar
 from matplotlib import pyplot as plt
-from shapely.ops import linemerge, unary_union
-
-ASEISMIC_CUT = 0.11
 
 WORKING_DIR = '/Users/kasey/VQModels/'
 
-UCERF3_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Geometry.dat'
-UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Friction.dat'
-UCERF3_FILE_TEXT = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Geometry.txt'
+##!!!!!!!!!!!!!! These models have already been through   fault_match.py   and   sectioning.py 
+UCERF3_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_0.11_Geometry.dat'
+UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_0.11_Friction.dat'
 
-FINAL_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_'+str(ASEISMIC_CUT)+'_Geometry.dat'
-FINAL_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_'+str(ASEISMIC_CUT)+'_Friction.dat'
-FINAL_FILE_TEXT = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_'+str(ASEISMIC_CUT)+'.txt'
-
-FINAL_FINAL_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_'+str(ASEISMIC_CUT)+'_Geometry.dat'
-FINAL_FINAL_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_'+str(ASEISMIC_CUT)+'_Friction.dat'
-FINAL_FINAL_FILE_TEXT = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_'+str(ASEISMIC_CUT)+'.txt'
+FINAL_UCERF3_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Geometry.dat'
+FINAL_UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Friction.dat'
 
 
-#ELEMENT_FILE = WORKING_DIR+'UCERF3/UCERF3_ReElemented_LineSegment.txt'
+# ======== READ the actual strikes from the original model =========
+STRIKE_FILE = WORKING_DIR+'section_strikes.txt'
+strike_file = open(STRIKE_FILE, 'r')
+section_strikes = {}
+for line in strike_file:
+    name, secs = line.split(" = ")
+    section_strikes[name] = [float(num) for num in secs.split()]
+strike_file.close()
 
+
+#------------- UTILITIES ---------------------------------
 cmap = plt.get_cmap('Reds')
 norm = mcolor.Normalize(vmin=-.1, vmax=1)
-mag_slope = 1.0/1.1
 def get_color(magnitude):
-     return cmap(mag_slope * (magnitude + .1))
+    mag_slope = 1.0/1.1
+    return cmap(mag_slope * (magnitude + .1))
 
 def dotproduct(v1, v2):
   return sum((a*b) for a, b in zip(v1, v2))
 
 def length(v):
-  return np.sqrt(dotproduct(v, v))
+  return math.sqrt(dotproduct(v, v))
 
 def angle(v1, v2):
-  return np.arccos(dotproduct(v1, v2) / (length(v1) * length(v2)))
+  return math.acos(dotproduct(v1, v2) / (length(v1) * length(v2)))
     
+def vector_from_strike(this_strike):
+    strike_rad = this_strike*np.pi/180.0
+    return [np.sin(strike_rad), np.cos(strike_rad)]
+    
+def compute_mean_strike(strike_list):
+    assert not isinstance(strike_list, basestring)
+    vectors = [np.array(vector_from_strike(s)) for s in strike_list]
+    x,y = np.mean(vectors, axis=0)
+    return strike(x,y)
 
 def strike(x,y):
     vec = np.array([x,y])
@@ -48,9 +58,25 @@ def strike(x,y):
         return 180.0*(2*np.pi - angle(vec,north))/np.pi
     else:  
         return 180.0*angle(vec,north)/np.pi
+        
+def strike_difference_angle(strike1, strike2):
+    vector1 = np.array(vector_from_strike(strike1))
+    vector2 = np.array(vector_from_strike(strike2))
+    return 180.0*angle(vector1, vector2)/np.pi
+    
+
+## ----- Read in the target sections strikes from file -----------
+## ---- These are used to align sections in order along strike -----
+section_mean_strikes = dict.fromkeys(section_strikes.keys())
+###### Section IDs change, section names are immutable, so index this dictionary by section name
+for sec_name in section_strikes.keys():
+    this_mean_strike = compute_mean_strike(section_strikes[sec_name])
+    section_mean_strikes[sec_name] = this_mean_strike
+    #print("{:60s}\t{:.2f}".format(sec_name,this_mean_strike))
+    
 
 model = quakelib.ModelWorld()
-model.read_files_eqsim(FINAL_FILE_GEO, "", FINAL_FILE_FRIC, "none")
+model.read_files_eqsim(UCERF3_FILE_GEO, "", UCERF3_FILE_FRIC, "none")
 
 
 model.create_faults_minimal()
@@ -76,9 +102,8 @@ for elem,section in elem_to_section_map.items():
             fault_sections[fault_id].append(section)
     except KeyError:
         fault_sections[fault_id] = [section]
-        
-        
 
+## Use these dictionaries to make line segments from the lowest to highest element IDs
 section_first_elements = {sec:min(elements) for sec,elements in section_elements.items()}
 section_last_elements = {sec:max(elements) for sec,elements in section_elements.items()}
 
@@ -96,52 +121,30 @@ for sec_id in section_elements.keys():
         
 
 new_sec_id_map = {}
-fault_mean_strikes = {}
+section_target_strikes = {}
+fault_target_strikes = {}
 
 ####  Create the element remap      
 element_remap = quakelib.ModelRemapping()
         
-        
 ### For each fault, compute the mean strike using elements of each section
-for fid in fault_ids:
+for fid in model.getFaultIDs():
     section_ids = fault_sections[fid]
-    fault_mean_strike = 0.0
-    num_fault_elements = 0
+    section_strike_values = []
     for sid in section_ids:
-        element_ids = section_elements[sid]
-        for element_id in element_ids:
-            num_fault_elements += 1
-            fault_mean_strike += 180*model.create_sim_element(element_id).strike()/np.pi
-    fault_mean_strikes[fid] = fault_mean_strike/float(num_fault_elements)
+        section_strike_values.append(section_strikes[model.section(sid).name()])
+    # Unpack the list of lists that is section_strike_values
+    section_strike_values_list  = [item for sublist in section_strike_values for item in sublist]
+    fault_target_strikes[fid] = compute_mean_strike(section_strike_values_list)
         
         
-num_secs_reversed = 0
-winning_diffs = []
-for sec_id in section_elements.keys():
-    current_element_order   = sorted(section_elements[sec_id])
-    reversed_element_order  = sorted(section_elements[sec_id], reverse=1)
-    first_element_id        = min(section_elements[sec_id])
-    last_element_id         = max(section_elements[sec_id])
-    first_element_xyz       = model.vertex(model.element(first_element_id).vertex(0)).xyz()/1000.0
-    last_element_xyz        = model.vertex(model.element(last_element_id).vertex(0)).xyz()/1000.0
-    section_strike_reversed = strike(first_element_xyz[0]-last_element_xyz[0], first_element_xyz[1]-last_element_xyz[1])
-    section_strike          = strike(last_element_xyz[0]-first_element_xyz[0], last_element_xyz[1]-first_element_xyz[1])
-    fault_mean_strike       = fault_mean_strikes[model.section(sec_id).fault_id()]
-    
-    fault_vs_section_strike_diff = abs(fault_mean_strike-section_strike)
-    fault_vs_rev_section_strike_diff = abs(fault_mean_strike-section_strike_reversed)
-    
-    if (fault_vs_rev_section_strike_diff < fault_vs_section_strike_diff): 
-        #print("--Section {:45s} is reversed\tfault strike = {:6.2f}\tsection strike = {:6.2f} ({:.2f})\treversed section strike = {:6.2f} ({:.2f})".format(model.section(sec_id).name(),fault_mean_strike,section_strike,fault_vs_section_strike_diff, section_strike_reversed,fault_vs_rev_section_strike_diff))
-        winning_diffs.append(fault_vs_rev_section_strike_diff)
-        num_secs_reversed += 1.0
-        sections_to_reverse.append(sec_id)
-        print("------- {} -------".format(model.section(sec_id).name()))
+### For each section, compute the mean strike using elements of each section
+for sid in model.getSectionIDs():
+    section_strike_values_list = section_strikes[model.section(sid).name()]
+    section_target_strikes[sid] = compute_mean_strike(section_strike_values_list)
         
-print("Found that {:.2f}% of sections are reversed.".format(num_secs_reversed/float(len(section_ids))))
-
-
-
+        
+        
 ### Go through the section elements grouped by DAS and create a new dictionary 
 ###   indexed by the minimum element id at each DAS subtracted by the sections minimum element id.
 ### This computes the current index of each DAS group. In the last loop over sections, we will reverse this index
@@ -163,7 +166,45 @@ for sec_id in section_elements_by_DAS.keys():
         
                 
     #print('{}\n'.format(section_elements_by_DAS_index[sec_id]))
-
+        
+        
+num_secs_reversed = 0
+winning_diffs = []
+large_diffs = 0
+large_diff = 10
+for sec_id in section_elements.keys():
+    ## We only need to check those sections that are not single columns of elements.
+    ## Sections that consist of single columns of elements will have been ordered by sectioning.py previously.
+    if len(section_elements_by_DAS[sec_id].keys()) > 1:
+        first_element_id        = section_first_elements[sec_id]
+        last_element_id         = section_last_elements[sec_id]
+        first_element_xyz       = model.element_mean_xyz(first_element_id)
+        last_element_xyz        = model.element_mean_xyz(last_element_id)
+        #### Compute the strike angle of the line segment from the lowest element ID to the highest element ID for this section
+        section_strike          = strike(last_element_xyz[0]-first_element_xyz[0], last_element_xyz[1]-first_element_xyz[1])
+        section_strike_reversed = strike(first_element_xyz[0]-last_element_xyz[0], first_element_xyz[1]-last_element_xyz[1])
+        section_target_strike   = section_target_strikes[sec_id]
+        fault_target_strike     = fault_target_strikes[model.section(sec_id).fault_id()]
+        
+        ### Kasey: I tested both fault and section strike here. Section strike leaves the fewest mis-classified
+        target_strike = section_target_strike
+        
+        target_vs_section_strike_diff     = strike_difference_angle(target_strike, section_strike)
+        target_vs_rev_section_strike_diff = strike_difference_angle(target_strike, section_strike_reversed)
+        
+        if (target_vs_rev_section_strike_diff < target_vs_section_strike_diff):
+            winning_diffs.append(target_vs_rev_section_strike_diff)
+            num_secs_reversed += 1.0
+            #### After inspection, it looks like there are only a few outliers that have reversed element ordering with target_vs_rev_section_strike_diff > 10
+            if target_vs_rev_section_strike_diff < large_diff:
+                sections_to_reverse.append(sec_id)
+            else:
+                ##### Outliers do to highly curved sections. Only a few out of these 10 actually have reversed elements.
+                large_diffs = large_diffs+1
+                print("--Section {:60s} is reversed\ttarget strike = {:6.2f}\treversed section strike = {:6.2f} ({:.2f})\tsection strike = {:6.2f} ({:.2f})".format(model.section(sec_id).name(),target_strike, section_strike_reversed,target_vs_rev_section_strike_diff,section_strike,target_vs_section_strike_diff))
+        
+print("Found that {:.2f}% of sections have reversed element ordering.\n".format(100.0*num_secs_reversed/float(len(model.getSectionIDs()))))
+print("Found {} sections with winning strike differences > {}".format(large_diffs,large_diff))
 
 
 ### Go through the section elements grouped by DAS index and determine the new element numbers
@@ -179,17 +220,12 @@ for sec_id in section_elements_by_DAS_index.keys():
                 element_remap.remap_element(ele_id, new_id)
 
 
-
-#############
-#sys.exit()
-#############
-
 #plt.hist(winning_diffs,bins=100)
-#plt.show()            
+#plt.show()   
 
 model.apply_remap(element_remap)
         
-model.write_files_eqsim(FINAL_FINAL_FILE_GEO, "", FINAL_FINAL_FILE_FRIC)
-print("New model files written: {}, {}".format(FINAL_FINAL_FILE_GEO, FINAL_FINAL_FILE_FRIC))
+model.write_files_eqsim(FINAL_UCERF3_FILE_GEO, "", FINAL_UCERF3_FILE_FRIC)
+print("New model files written: {}, {}".format(FINAL_UCERF3_FILE_GEO, FINAL_UCERF3_FILE_FRIC))
 
 
