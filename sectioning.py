@@ -97,8 +97,6 @@ for elem,section in elem_to_section_map.items():
             fault_sections[fault_id].append(section)
     except KeyError:
         fault_sections[fault_id] = [section]
-section_first_elements = {sec:min(elements) for sec,elements in section_elements.items()}
-section_last_elements = {sec:max(elements) for sec,elements in section_elements.items()}
 
 new_sec_id_map = {}
 strike_diffs = []
@@ -129,7 +127,6 @@ for fid in fault_ids:
     section_strike_values = []
     for sid in section_ids:
         section_strike_values.append(section_strikes[model.section(sid).name()])
-        element_id = section_first_elements[sid]
         mean_xyz = section_mean_xyz[sid]
         sec_points.append(Point(mean_xyz[0],mean_xyz[1]))
         section_points_dict[sid] = [mean_xyz[0],mean_xyz[1]]
