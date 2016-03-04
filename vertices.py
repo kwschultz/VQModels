@@ -11,7 +11,7 @@ WORKING_DIR = '/Users/kasey/VQModels/'
 
 
 ###!!! This vertex remapper is applied only after using   fault_match.py then sectioning.py then elements.py
-UCERF3_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Geometry.dat'
+UCERF3_FILE_GEO  = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Geometry.dat'
 UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Friction.dat'
 
 FINAL_FILE_GEO  = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_ReVertexed_AseismicCut_0.11_Geometry.dat'

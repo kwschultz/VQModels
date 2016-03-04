@@ -35,6 +35,13 @@ REGEX_strings = ['_Subsection_(\d)+', '_2011','_CFM', '_Extension', '_extension'
                 '_alt_1', '_alt1', '_connector', '_Keough_Hot_Springs','_No$', '_So$',
                 '_North$','_South$', '_north$','_south$', '_East$', '_West$', 
                 '_San_Fernando$', '_Offshore$','_Onshore$']
+                
+####  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                
+#### We may want to be less restrictive in the future, not trimming _East, _West, _South, _North.
+#### For example, check out (in the Google Earth KML file) the Ortigalita North and South faults.
+####   For Ortigalita, it doesn't make sense to have DAS defined along both North and South since
+####   the two subsections overlap a bit.
+####  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 # The following faults have multiply named sections containing the following key words, 

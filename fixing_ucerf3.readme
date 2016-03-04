@@ -1,6 +1,8 @@
-#In order to apply the ID remapping scripts to fix the UCERF3 fault model,
-#Excute the following commands in order.
-
+##### Kasey Schultz
+#---------------------------------------------------------------------------------#
+# In order to apply the ID remapping scripts to fix the UCERF3 fault model,       #
+# Excute the following commands in order by executing "bash fixing_ucerf3.readme" #
+#---------------------------------------------------------------------------------#
 python fault_match.py   # Combine faults of the same name
 python sectioning.py    # Re-index sections within faults follow fault strike
 python elements.py      # Re-index elements within sections to follow section strike

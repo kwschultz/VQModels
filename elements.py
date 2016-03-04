@@ -8,10 +8,10 @@ from matplotlib import pyplot as plt
 WORKING_DIR = '/Users/kasey/VQModels/'
 
 ##!!!!!!!!!!!!!! These models have already been through   fault_match.py   and   sectioning.py 
-UCERF3_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_0.11_Geometry.dat'
+UCERF3_FILE_GEO =  WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_0.11_Geometry.dat'
 UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_0.11_Friction.dat'
 
-FINAL_UCERF3_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Geometry.dat'
+FINAL_UCERF3_FILE_GEO  = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Geometry.dat'
 FINAL_UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Friction.dat'
 
 
@@ -207,6 +207,8 @@ print("Found that {:.2f}% of sections have reversed element ordering.\n".format(
 print("Found {} sections with winning strike differences > {}".format(large_diffs,large_diff))
 
 
+num_elements_at_DAS_indexed_by_elementID = {}
+
 ### Go through the section elements grouped by DAS index and determine the new element numbers
 for sec_id in section_elements_by_DAS_index.keys():
     if sec_id in sections_to_reverse:
@@ -218,12 +220,39 @@ for sec_id in section_elements_by_DAS_index.keys():
             for i,ele_id in enumerate(section_elements_by_DAS_index[sec_id][DAS_index]):
                 new_id = sec_first_element_id + (new_DAS_index*num_elements_at_this_DAS) + i
                 element_remap.remap_element(ele_id, new_id)
+                num_elements_at_DAS_indexed_by_elementID[new_id] = num_elements_at_this_DAS
 
 
 #plt.hist(winning_diffs,bins=100)
 #plt.show()   
 
 model.apply_remap(element_remap)
+
+
+#### Not done yet, we still need to re-write DAS values correctly
+for sec_id in section_elements.keys():  
+    if sec_id in sections_to_reverse:
+        for ele_id in sorted(section_elements[sec_id]):
+            min_element_ID_in_sec    = min(section_elements[sec_id])
+            num_elements_at_DAS      = num_elements_at_DAS_indexed_by_elementID[ele_id]
+            element_index_within_sec = ele_id - min_element_ID_in_sec
+            element_length           = model.vertex(model.element(ele_id).vertex(0)).xyz().dist( model.vertex(model.element(ele_id).vertex(2)).xyz() )
+            if element_index_within_sec < num_elements_at_DAS:
+                # First column of elements is easy
+                model.vertex( model.element(ele_id).vertex(0) ).set_das(0.0)
+                model.vertex( model.element(ele_id).vertex(1) ).set_das(0.0)
+                model.vertex( model.element(ele_id).vertex(2) ).set_das(element_length)
+            else:
+                ## Use the just-set DAS values for the column of elements just before this element
+                neighbor_id             = ele_id - num_elements_at_DAS_indexed_by_elementID[ele_id]
+                DAS_before_this_element = model.vertex(model.element(neighbor_id).vertex(2)).das()
+                this_DAS_min            = DAS_before_this_element + model.vertex(model.element(ele_id).vertex(0)).xyz().dist( model.vertex(model.element(neighbor_id).vertex(2)).xyz() )
+                this_DAS_max            = this_DAS_min + element_length
+                
+                model.vertex( model.element(ele_id).vertex(0) ).set_das(this_DAS_min)
+                model.vertex( model.element(ele_id).vertex(1) ).set_das(this_DAS_min)
+                model.vertex( model.element(ele_id).vertex(2) ).set_das(this_DAS_max)
+
         
 model.write_files_eqsim(FINAL_UCERF3_FILE_GEO, "", FINAL_UCERF3_FILE_FRIC)
 print("New model files written: {}, {}".format(FINAL_UCERF3_FILE_GEO, FINAL_UCERF3_FILE_FRIC))
