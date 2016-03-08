@@ -5,7 +5,7 @@ import matplotlib.colors as mcolor
 import matplotlib.colorbar as mcolorbar
 from matplotlib import pyplot as plt
 
-WORKING_DIR = '/Users/kasey/VQModels/'
+WORKING_DIR = '/home/jmwilson/VirtQuake/VQModels/'
 
 ##!!!!!!!!!!!!!! These models have already been through   fault_match.py   and   sectioning.py 
 UCERF3_FILE_GEO =  WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_0.11_Geometry.dat'

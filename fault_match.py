@@ -3,7 +3,7 @@ import quakelib
 import re, sys, collections
 
 # Change this to match your computer/file system
-WORKING_DIR = '/Users/kasey/VQModels/'
+WORKING_DIR = '/home/jmwilson/VirtQuake/VQModels/'
 ASEISMIC_CUT = 0.11
 STRESS_DROP = 0.5
 SAVE_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_'+str(ASEISMIC_CUT)+'_ReFaulted_Geometry.dat'

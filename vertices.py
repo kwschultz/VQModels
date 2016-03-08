@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 
 ASEISMIC_CUT = 0.11
 
-WORKING_DIR = '/Users/kasey/VQModels/'
+WORKING_DIR = '/home/jmwilson/VirtQuake/VQModels/'
 
 
 ###!!! This vertex remapper is applied only after using   fault_match.py then sectioning.py then elements.py

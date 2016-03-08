@@ -6,7 +6,7 @@ import matplotlib.colorbar as mcolorbar
 from matplotlib import pyplot as plt
 
 ## Change this path to match your directory structure
-WORKING_DIR = '/Users/kasey/VQModels/'
+WORKING_DIR = '/home/jmwilson/VirtQuake/VQModels/'
 
 UCERF3_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_0.11_ReFaulted_Geometry.dat'
 UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_AseismicCut_0.11_ReFaulted_Friction.dat'
@@ -145,8 +145,8 @@ for fid in fault_ids:
     endpoint_i = sec_points[max_i]
     endpoint_j = sec_points[max_j]
     
-    i_to_j = LineString((endpoint_i, endpoint_j) )
-    j_to_i = LineString((endpoint_j, endpoint_i) )
+    i_to_j = LineString([(endpoint_i.x, endpoint_i.y), (endpoint_j.x, endpoint_j.y)] )
+    j_to_i = LineString([(endpoint_j.x, endpoint_j.y), (endpoint_i.x, endpoint_i.y)] )
     
     strike_j_to_i = strike(endpoint_i.x-endpoint_j.x, endpoint_i.y-endpoint_j.y)
     strike_i_to_j = strike(endpoint_j.x-endpoint_i.x, endpoint_j.y-endpoint_i.y)
