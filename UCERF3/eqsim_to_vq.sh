@@ -10,6 +10,9 @@ fi
 TAPER=$1
 STRESS_DROP_FACTOR=$2
 
+#GEOFILE='UCERF3_ZENGBB_EQSIM_improved.txt'   #Original
+#OUTNAME='UCERF3_VQmeshed_from_EQSIM_standard'   #Original
+
 GEOFILE='UCERF3_EQSim_ReIndexed_AseismicCut_0.11_Geometry.dat'
 FRICFILE='UCERF3_EQSim_ReIndexed_AseismicCut_0.11_Friction.dat'
 OUTNAME='UCERF3_VQmeshed_from_EQSIM_ReIndexed_AseismicCut_0-11'
