@@ -16,7 +16,7 @@ FINAL_UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_
 
 
 # ======== READ the actual strikes from the original model =========
-STRIKE_FILE = WORKING_DIR+'section_strikes.txt'
+STRIKE_FILE = WORKING_DIR+'section_strikes_SAF_fix.txt'  # Fixed SAF strikes by hand
 strike_file = open(STRIKE_FILE, 'r')
 section_strikes = {}
 for line in strike_file:
@@ -171,7 +171,7 @@ for sec_id in section_elements_by_DAS.keys():
 num_secs_reversed = 0
 winning_diffs = []
 large_diffs = 0
-large_diff = 10
+large_diff = 40
 for sec_id in section_elements.keys():
     ## We only need to check those sections that are not single columns of elements.
     ## Sections that consist of single columns of elements will have been ordered by sectioning.py previously.
@@ -195,13 +195,13 @@ for sec_id in section_elements.keys():
         if (target_vs_rev_section_strike_diff < target_vs_section_strike_diff):
             winning_diffs.append(target_vs_rev_section_strike_diff)
             num_secs_reversed += 1.0
-            #### After inspection, it looks like there are only a few outliers that have reversed element ordering with target_vs_rev_section_strike_diff > 10
+            #### After inspection, it looks like there are only a few outliers that have reversed element ordering with target_vs_rev_section_strike_diff > 40
             if target_vs_rev_section_strike_diff < large_diff:
                 sections_to_reverse.append(sec_id)
             else:
                 ##### Outliers do to highly curved sections. Only a few out of these 10 actually have reversed elements.
                 large_diffs = large_diffs+1
-                print("--Section {:60s} is reversed\ttarget strike = {:6.2f}\treversed section strike = {:6.2f} ({:.2f})\tsection strike = {:6.2f} ({:.2f})".format(model.section(sec_id).name(),target_strike, section_strike_reversed,target_vs_rev_section_strike_diff,section_strike,target_vs_section_strike_diff))
+                print("--Section {:60s} detected as reversed but NOT reversed due to large strike difference\ttarget strike = {:6.2f}\treversed section strike = {:6.2f} ({:.2f})\tsection strike = {:6.2f} ({:.2f})".format(model.section(sec_id).name(),target_strike, section_strike_reversed,target_vs_rev_section_strike_diff,section_strike,target_vs_section_strike_diff))
         
 print("Found that {:.2f}% of sections have reversed element ordering.\n".format(100.0*num_secs_reversed/float(len(model.getSectionIDs()))))
 print("Found {} sections with winning strike differences > {}".format(large_diffs,large_diff))
