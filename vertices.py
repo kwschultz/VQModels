@@ -14,12 +14,12 @@ WORKING_DIR = '/home/jmwilson/VirtQuake/VQModels/'
 UCERF3_FILE_GEO  = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Geometry.dat'
 UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Friction.dat'
 
-FINAL_FILE_GEO  = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_ReVertexed_AseismicCut_0.11_Geometry.dat'
-FINAL_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_ReVertexed_AseismicCut_0.11_Friction.dat'
+FINAL_FILE_GEO  = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReIndexed_AseismicCut_0.11_Geometry.dat'
+FINAL_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReIndexed_AseismicCut_0.11_Friction.dat'
 
 
 # ======== READ the actual strikes from the original model =========
-STRIKE_FILE = WORKING_DIR+'section_strikes.txt'
+STRIKE_FILE = WORKING_DIR+'section_strikes_SAF_fix.txt'  # SAF strikes fixed
 strike_file = open(STRIKE_FILE, 'r')
 section_strikes = {}
 for line in strike_file:
@@ -142,7 +142,7 @@ for ele_id in model.getElementIDs():
         element_minus_one_strike = 180*model.create_sim_element(ele_id-1).strike()/np.pi
         element_plus_one_strike = 180*model.create_sim_element(ele_id+1).strike()/np.pi
         #print("----- Element {} in Section {} has reversed vertices -------".format(ele_id, model.section(model.element(ele_id).section_id()).name()))
-        print("Element {}\tMean section strike {:.2f}\tElement Strike\Rake {:.2f}  {:.2f}\tElement-1 Strike\Rake {:.2f}   {:.2f}\t\tElement+1 Strike\Rake {:.2f}  {:.2f}".format(ele_id, section_mean_strike, element_strike, model.element(ele_id).rake(), element_minus_one_strike, model.element(ele_id-1).rake(), element_plus_one_strike, model.element(ele_id+1).rake()))
+        print("Element {}\tMean section strike {:.2f}\tElement Strike {:.2f}\tElement-1 Strike {:.2f}\t\tElement+1 Strike {:.2f}".format(ele_id, section_mean_strike, element_strike, element_minus_one_strike, element_plus_one_strike))
         #v0 = model.vertex(model.element(ele_id).vertex(0)).xyz()/1000.0
         #v1 = model.vertex(model.element(ele_id).vertex(1)).xyz()/1000.0
         #v2 = model.vertex(model.element(ele_id).vertex(2)).xyz()/1000.0

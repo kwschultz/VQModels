@@ -16,7 +16,7 @@ FINAL_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_Aseismi
 
 
 # ======== READ the actual strikes from the original model =========
-STRIKE_FILE = WORKING_DIR+'section_strikes.txt'
+STRIKE_FILE = WORKING_DIR+'section_strikes_SAF_fix.txt'   # Fixed SAF strikes by hand
 strike_file = open(STRIKE_FILE, 'r')
 section_strikes = {}
 for line in strike_file:
