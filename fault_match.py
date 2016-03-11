@@ -74,13 +74,6 @@ print("------Parsed "+str(len(uniq_faults.keys()))+" Uniquely Named Faults-----"
 # Print the semi-final faults
 #for key, val in uniq_faults.iteritems():
 #    print('{}\t{}'.format(val, key))
-
-########### There are some sections that we specifically do not want to combine into a fault.
-## Look at the North_Branch_Mill_Creek section of the San Andreas, or the Ortigalita North/South sections
-##   and it is apparent. We only want to define fault objects that have continuous DAS values that make sense.
-## You must use the trimmed section name though. Easiest to print out the trimmed names below then grab them.
-sections_to_skip = ["San_Andreas_North_Branch_Mill_Creek", "Ortigalita"] 
-specific_faults_to_create = ["San_Andreas_North_Branch_Mill_Creek", "Ortigalita_North", "Ortigalita_South"]
     
 # Loop over the sections again to reset the fault IDs to whichever unique fault matches
 for sec_id in sorted(model.getSectionIDs()):
@@ -100,10 +93,6 @@ for sec_id in sorted(model.getSectionIDs()):
     # Try to find a special fault name that matches
     for i, spec_fault_name in enumerate(special_faults):
         if trimmed_name.find(spec_fault_name) >= 0:
-            # Need to separate some sections by hand to prevent combining
-            if trimmed_name in sections_to_skip: 
-                #print("Not combining {} into special fault name.".format(sec_name))
-                break
             new_fault_id = special_fault_ids[i]
             new_fault_name = spec_fault_name
             break
@@ -113,11 +102,6 @@ for sec_id in sorted(model.getSectionIDs()):
     #     same unique fault name.
     if new_fault_id is None:
         new_fault_name = trimmed_name
-        
-        ### Catch the few faults we want to keep separate by hand. Needs to be improved here later.
-        subsection_trimmed_name = re.sub(subsection_trimmer_reg, '', sec_name)
-        if trimmed_name in sections_to_skip:
-            new_fault_name = subsection_trimmed_name
         
         try:
             new_fault_id = uniq_faults_combined[trimmed_name]
