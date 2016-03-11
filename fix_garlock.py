@@ -2,13 +2,16 @@ import numpy as np
 import re, math
 from matplotlib import pyplot as plt
 
-SECTION_FILE = 'section_strikes.txt'
-FIXED_SECTION_STRIKES = 'section_strikes_SAF_fix.txt'
+SECTION_FILE = 'section_strikes_SAF_fix_LA_Basin_and_Mojave_Fix.txt'
+FIXED_SECTION_STRIKES = 'section_strikes_with_fixes.txt'
+
+## Faults that have been fixed to have correct strikes:
+# San Andreas, Garlock, Raymond, Hollywood, Santa Monica, Palos Verdes, 
+
 
 section_strike_file = open(SECTION_FILE,'r')
 new_section_strike_file = open(FIXED_SECTION_STRIKES,'w')
 
-corrected_section_strikes = {}
 
 reg = '\_Subsection\_[0-9]+$'  # trim the "Subsection" and underscore and the trailing number
 
@@ -46,13 +49,14 @@ def strike_difference_angle(strike1, strike2):
     vector2 = np.array(vector_from_strike(strike2))
     return 180.0*angle(vector1, vector2)/np.pi
     
-    
+# These functions take a list of strikes (as a string) and return
+#  a list of corrected strikes (as a string).
 def add_180(string):
     ray = [ float(x)+180 for x in string.split()]
     line = ""
     for val in ray:
         line+=str(val)+" "
-    print(line)
+    return line
     
     
 def subtract_180(string):
@@ -60,7 +64,7 @@ def subtract_180(string):
     line = ""
     for val in ray:
         line+=str(val)+" "
-    print(line)
+    return line
     
     
 #######  UTILITIES ------------------------------------------
@@ -69,23 +73,15 @@ def subtract_180(string):
 
 for line in section_strike_file:
     name, secs = line.split(" = ")
-    corrected_section_strikes[name] = []
     trimmed_name = re.sub(reg,'', name)
-    section_strike_floats = [float(x) for x in secs.split()]
-    #print("{:60s} = {}".format(name,section_strike_floats))
     trimmed_and_split = trimmed_name.split("_")
-    if len(trimmed_and_split) > 1:
-        ## Detected a San Andreas section
-        if trimmed_and_split[1] == "Andreas":
-            ### Enforce that SAF strikes should be bigger than 180 degrees
-            old_mean_strike = compute_mean_strike(section_strike_floats)
-            if old_mean_strike < 180.0:
-                section_strike_floats = [x+180.0 for x in section_strike_floats]
-                #print("{:60s} mean strike {:.3f} -> {:.3f}".format(name,old_mean_strike,compute_mean_strike(section_strike_floats)))
-    line_to_write = name+" = "
-    for strike_float in section_strike_floats:
-        line_to_write += str(strike_float)+" "
-    new_section_strike_file.write(line_to_write+"\n")
+    if trimmed_and_split[0] == "Garlock":
+        # I know apriori that I need to subtract 180
+        line_to_write = name+" = "+subtract_180(secs)+"\n"
+    else:
+        line_to_write = line
+    
+    new_section_strike_file.write(line_to_write)
 
 
 section_strike_file.close()
