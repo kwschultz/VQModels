@@ -32,9 +32,9 @@ print("------     belonging to "+str(len(fault_ids))+" Faults-----")
 #   to extend an old one, even though both are the same fault.
 
 REGEX_strings = ['_Subsection_(\d)+', '_2011','_CFM', '_Extension', '_extension',
-                '_alt_1', '_alt1', '_connector', '_Keough_Hot_Springs','_No$', '_So$',
+                '_alt_1', '_alt1', '_connector', '_No$', '_So$',
                 '_North$','_South$', '_north$','_south$', '_East$', '_West$', 
-                '_San_Fernando$', '_Offshore$','_Onshore$']
+                '_San_Fernando$', '_Offshore$','_Onshore$', '_rev$']
                 
 subsection_trimmer_reg = '\_Subsection\_[0-9]+$'
                 
@@ -49,9 +49,10 @@ subsection_trimmer_reg = '\_Subsection\_[0-9]+$'
 # The following faults have multiply named sections containing the following key words, 
 #   its easier to match these than cut out each instance of the variant names.
 special_faults = ['Calaveras','Contra_Costa','Death_Valley','Elsinore','Garlock',
-                    'Kern_Canyon','San_Andreas','San_Jacinto']
-specific_faults_to_create = ["San_Andreas_North_Branch_Mill_Creek", "Ortigalita_North", "Ortigalita_South", "South_Klamath_Lake_East", "South_Klamath_Lake_West"]
-
+                    'Kern_Canyon','San_Andreas']
+sanJacinto_North = ["San_Jacinto_San_Bernardino", "San_Jacinto_San_Jacinto_Valley", "San_Jacinto_Stepovers_Combined", "San_Jacinto_Anza", "San_Jacinto_Clark"]
+sanJacinto_South = ["San_Jacinto_Coyote_Creek", "San_Jacinto_Borrego", "San_Jacinto_Superstition_Mtn"]
+specific_faults_to_create = ["San_Andreas_North_Branch_Mill_Creek", "Ortigalita_North", "Ortigalita_South", "South_Klamath_Lake_East", "South_Klamath_Lake_West", "San_Jacinto_Lytle_Creek"]
 
 
 # Loop once over sections to determine the unique fault names and IDs
@@ -62,6 +63,12 @@ for sec_id in sorted(model.getSectionIDs()):
     trimmed_name = sec_name
     for REGEX in REGEX_strings:
         trimmed_name = re.sub(REGEX, '', trimmed_name)
+        if trimmed_name in sanJacinto_North:
+            trimmed_name = "San_Jacinto_North"
+            break
+        if trimmed_name in sanJacinto_South:
+            trimmed_name = "San_Jacinto_South"
+            break
         if trimmed_name in specific_faults_to_create: break
     
     uniq_faults[trimmed_name] = sec_fault_id
@@ -79,6 +86,12 @@ for sec_id in sorted(model.getSectionIDs()):
     trimmed_name = sec_name
     for REGEX in REGEX_strings:
         trimmed_name = re.sub(REGEX, '', trimmed_name)
+        if trimmed_name in sanJacinto_North:
+            trimmed_name = "San_Jacinto_North"
+            break
+        if trimmed_name in sanJacinto_South:
+            trimmed_name = "San_Jacinto_South"
+            break
         if trimmed_name in specific_faults_to_create: break
     
     # ===== These get set if the trimmed name contains a special fault name.
