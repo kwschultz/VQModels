@@ -32,7 +32,7 @@ print("------     belonging to "+str(len(fault_ids))+" Faults-----")
 #   to extend an old one, even though both are the same fault.
 
 REGEX_strings = ['_Subsection_(\d)+', '_2011','_CFM', '_Extension', '_extension',
-                '_alt_1', '_alt1', '_connector', '_Keough_Hot_Springs','_No$', '_So$',
+                '_alt_1', '_alt1', '_connector', '_No$', '_So$',
                 '_North$','_South$', '_north$','_south$', '_East$', '_West$', 
                 '_San_Fernando$', '_Offshore$','_Onshore$', '_rev$']
                 
@@ -52,7 +52,7 @@ special_faults = ['Calaveras','Contra_Costa','Death_Valley','Elsinore','Garlock'
                     'Kern_Canyon','San_Andreas']
 sanJacinto_North = ["San_Jacinto_San_Bernardino", "San_Jacinto_San_Jacinto_Valley", "San_Jacinto_Stepovers_Combined", "San_Jacinto_Anza", "San_Jacinto_Clark"]
 sanJacinto_South = ["San_Jacinto_Coyote_Creek", "San_Jacinto_Borrego", "San_Jacinto_Superstition_Mtn"]
-specific_faults_to_create = ["San_Andreas_North_Branch_Mill_Creek", "Ortigalita_North", "Ortigalita_South", "South_Klamath_Lake_East", "South_Klamath_Lake_West", "San_Jacinto_Lytle_Creek", "Owens_Valley_Keough_Hot_Springs"]
+specific_faults_to_create = ["San_Andreas_North_Branch_Mill_Creek", "Ortigalita_North", "Ortigalita_South", "South_Klamath_Lake_East", "South_Klamath_Lake_West", "San_Jacinto_Lytle_Creek"]
 
 
 # Loop once over sections to determine the unique fault names and IDs
