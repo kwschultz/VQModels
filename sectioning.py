@@ -182,7 +182,8 @@ for fid in fault_ids:
         #plt.scatter([section_points_dict[sid][0]],[section_points_dict[sid][1]], s=80, color=distance_color, marker='*', zorder=10, label=LABEL)
         
     ordered_sec_dists = collections.OrderedDict(sorted(sec_distances.items()))
-        
+    # create a list of ordered section IDs
+    ordered_section_ids = sorted(section_ids)
     for i,value in enumerate(ordered_sec_dists.items()):
         dist,sid = value
         ############sys.stdout.write("{} -> {}\t{}\tat\t{}\n".format(sid,first_section_id+i,model.section(sid).name(), dist))
@@ -190,9 +191,8 @@ for fid in fault_ids:
         #sections.write("{} -> {}\t{}\tat\t{}\n".format(sid,first_section_id+i,model.section(sid).name(), dist))
         # Be sure not to do anything if it's already in order (used for testing, 
         #       re run the script on the edited and saved fault model)
-        if sid != first_section_id+i:  
-            # Re-assign the section id so it's in order
-            new_sec_id_map[sid] = first_section_id+i
+        # Re-assign the section id so it's in order
+        new_sec_id_map[sid] = ordered_section_ids[i]
 
 
 

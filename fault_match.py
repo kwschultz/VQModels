@@ -124,7 +124,24 @@ ordered_uniq_faults = collections.OrderedDict(sorted(uniq_faults_combined.items(
 # Print the final faults
 #for key, val in ordered_uniq_faults.iteritems():
 #    print('{}\t{}'.format(val, key))
- 
+
+# Print all sections associated with each fault name
+faults_byID = {}
+for key, val in ordered_uniq_faults.iteritems():
+    faults_byID[val] = key
+
+fault_sec_dict = {}
+for sec_id in sorted(model.getSectionIDs()):
+    fname = faults_byID[model.section(sec_id).fault_id()]
+    try:
+        fault_sec_dict[fname].append(sec_id)
+    except KeyError:
+        fault_sec_dict[fname] = [sec_id]
+
+for key, val in collections.OrderedDict(sorted(fault_sec_dict.items())).iteritems():
+    print('{}\t{}\n'.format(key, val))
+
+
 print("=== Combined into "+str(len(ordered_uniq_faults.keys()))+" Unique Faults ====")
 
 
