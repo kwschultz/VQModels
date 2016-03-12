@@ -15,8 +15,9 @@ FINAL_FILE_GEO = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_Aseismic
 FINAL_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_AseismicCut_0.11_Friction.dat'
 
 
+
 # ======== READ the actual strikes from the original model =========
-STRIKE_FILE = WORKING_DIR+'section_strikes_SAF_fix.txt'   # Fixed SAF strikes by hand
+STRIKE_FILE = WORKING_DIR+'section_strikes_with_fixes.txt'   # Fixed multiple fault strikes by hand
 strike_file = open(STRIKE_FILE, 'r')
 section_strikes = {}
 for line in strike_file:
@@ -172,8 +173,13 @@ for fid in fault_ids:
         dist_along = strike_line.project(Point((x_points[i],y_points[i])), normalized=True)
         sec_distances[dist_along] = sid
         #sys.stdout.write("{} at distance of {}\n".format(model.section(sid).name(), dist_along))
+        #### Uncomment below to plot
         #distance_color = get_color(dist_along)
-        #plt.scatter([section_points_dict[sid][0]],[section_points_dict[sid][1]], s=80, color=distance_color, marker='*', zorder=10)
+        #if i==0:
+        #    LABEL = "Sections colored by projected Shapely distance along strike"
+        #else:
+        #    LABEL = ""
+        #plt.scatter([section_points_dict[sid][0]],[section_points_dict[sid][1]], s=80, color=distance_color, marker='*', zorder=10, label=LABEL)
         
     ordered_sec_dists = collections.OrderedDict(sorted(sec_distances.items()))
         
@@ -230,10 +236,10 @@ print("New model files written: {}, {}".format(FINAL_FILE_GEO, FINAL_FILE_FRIC))
 #dx = x[1]-x[0]
 #dy = y[1]-y[0]
 ###plt.plot(x,y,c='b',label="strike line, mean strike = {}".format(sec_mean_strike))
-#plt.arrow(x[0], y[0], dx, dy , head_width=8, label="strike line, mean strike = {}".format(sec_mean_strike))
-#plt.xlim(x[0]*0.9,x[1]*1.1)
-#plt.ylim(y[0]*0.9,y[1]*1.1)
-#plt.savefig("shapely_objects_from_trace_Zayante.png")                                                
-##plt.hist(strike_diffs,bins=100)
-##plt.savefig("strike_differences.png")
+#plt.arrow(x[0], y[0], dx, dy , head_width=12)
+#plt.legend(loc="best", fontsize=10)
+#plt.title("Re-Sectioning the Elsinore fault with Shapely")
+#plt.savefig("shapely_objects_from_trace_Elsinore.png")                                                
+###plt.hist(strike_diffs,bins=100)
+###plt.savefig("strike_differences.png")
 

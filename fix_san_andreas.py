@@ -45,6 +45,24 @@ def strike_difference_angle(strike1, strike2):
     vector1 = np.array(vector_from_strike(strike1))
     vector2 = np.array(vector_from_strike(strike2))
     return 180.0*angle(vector1, vector2)/np.pi
+    
+    
+def add_180(string):
+    ray = [ float(x)+180 for x in string.split()]
+    line = ""
+    for val in ray:
+        line+=str(val)+" "
+    print(line)
+    
+    
+def subtract_180(string):
+    ray = [ float(x)-180 for x in string.split()]
+    line = ""
+    for val in ray:
+        line+=str(val)+" "
+    print(line)
+    
+    
 #######  UTILITIES ------------------------------------------
 
 

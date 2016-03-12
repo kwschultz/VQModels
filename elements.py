@@ -16,7 +16,7 @@ FINAL_UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_
 
 
 # ======== READ the actual strikes from the original model =========
-STRIKE_FILE = WORKING_DIR+'section_strikes_SAF_fix.txt'  # Fixed SAF strikes by hand
+STRIKE_FILE = WORKING_DIR+'section_strikes_with_fixes.txt'  # Fixed SAF strikes by hand
 strike_file = open(STRIKE_FILE, 'r')
 section_strikes = {}
 for line in strike_file:
@@ -78,30 +78,47 @@ for sec_name in section_strikes.keys():
 model = quakelib.ModelWorld()
 model.read_files_eqsim(UCERF3_FILE_GEO, "", UCERF3_FILE_FRIC, "none")
 
-
 model.create_faults_minimal()
 fault_ids = model.getFaultIDs()
 section_ids = model.getSectionIDs()
 sys.stdout.write("Read {} faults...\n".format(len(fault_ids)))
 sys.stdout.write("Read {} sections...\n".format(len(section_ids)))
 
+
+### We only need to build the element ID <--> section ID, fault ID <--> section ID, 
+##   and element ID <--> fault ID dictionaries once, since we are only shuffling element IDs
+##   around within sections and faults.
+
+
 elem_to_section_map = {elem_num: model.element(elem_num).section_id() for elem_num in model.getElementIDs()}
 section_elements = {}
 fault_sections = {}
+fault_elements = {}
 sections_to_reverse = []
 
 for elem,section in elem_to_section_map.items():
+    ## Build the dictionary of section <--> elements
     try:
         section_elements[section].append(elem)
     except KeyError:
         section_elements[section] = [elem]
-        
+
+    ## Build the dictionary of fault <--> sections        
     fault_id = model.section(section).fault_id()
     try:
         if section not in fault_sections[fault_id]:
             fault_sections[fault_id].append(section)
     except KeyError:
         fault_sections[fault_id] = [section]
+
+    ## Build the dictionary of fault <--> elements
+    try:
+        if elem not in fault_elements[fault_id]:
+            fault_elements[fault_id].append(elem)
+    except KeyError:
+        fault_elements[fault_id] = [elem]        
+        
+        
 
 ## Use these dictionaries to make line segments from the lowest to highest element IDs
 section_first_elements = {sec:min(elements) for sec,elements in section_elements.items()}
@@ -199,12 +216,12 @@ for sec_id in section_elements.keys():
             if target_vs_rev_section_strike_diff < large_diff:
                 sections_to_reverse.append(sec_id)
             else:
-                ##### Outliers do to highly curved sections. Only a few out of these 10 actually have reversed elements.
+                ##### Outliers do to highly curved sections (large strike variations within a section). Only a few out of these actually have reversed elements.
                 large_diffs = large_diffs+1
                 print("--Section {:60s} detected as reversed but NOT reversed due to large strike difference\ttarget strike = {:6.2f}\treversed section strike = {:6.2f} ({:.2f})\tsection strike = {:6.2f} ({:.2f})".format(model.section(sec_id).name(),target_strike, section_strike_reversed,target_vs_rev_section_strike_diff,section_strike,target_vs_section_strike_diff))
         
 print("Found that {:.2f}% of sections have reversed element ordering.\n".format(100.0*num_secs_reversed/float(len(model.getSectionIDs()))))
-print("Found {} sections with winning strike differences > {}".format(large_diffs,large_diff))
+print("Bad strike match detection: Found {} sections with preferred strike differences > {}".format(large_diffs,large_diff))
 
 
 num_elements_at_DAS_indexed_by_elementID = {}
@@ -218,7 +235,17 @@ for sec_id in section_elements_by_DAS_index.keys():
             num_elements_at_this_DAS = len(section_elements_by_DAS_index[sec_id][DAS_index])
             new_DAS_index = (num_DAS_groups-1) - DAS_index  # This reverses the order of the DAS_index
             for i,ele_id in enumerate(section_elements_by_DAS_index[sec_id][DAS_index]):
+                ## Here is the fancy footwork, solving for the new element ID from DAS index
                 new_id = sec_first_element_id + (new_DAS_index*num_elements_at_this_DAS) + i
+                
+                ## Need to be sure that the new_id is an ID that already exists within the model.
+                ##   E.g. we don't want to assign an ID of 1 billion.
+                assert(new_id in list(model.getElementIDs()))
+                
+                ## We also need to check that we are only reassigning IDs within a section. We don't 
+                ##   want element IDs from one section to be remapped to another section.
+                assert(new_id in section_elements[sec_id] and ele_id in section_elements[sec_id])
+                
                 element_remap.remap_element(ele_id, new_id)
                 num_elements_at_DAS_indexed_by_elementID[new_id] = num_elements_at_this_DAS
 
@@ -229,7 +256,8 @@ for sec_id in section_elements_by_DAS_index.keys():
 model.apply_remap(element_remap)
 
 
-#### Not done yet, we still need to re-write DAS values correctly
+#### Not done yet, we still need to re-write DAS values correctly within each section.
+## The mesher in Virtual Quake will fix the DAS values for each fault if they are correct for each section.
 for sec_id in section_elements.keys():  
     if sec_id in sections_to_reverse:
         for ele_id in sorted(section_elements[sec_id]):
@@ -245,6 +273,10 @@ for sec_id in section_elements.keys():
             else:
                 ## Use the just-set DAS values for the column of elements just before this element
                 neighbor_id             = ele_id - num_elements_at_DAS_indexed_by_elementID[ele_id]
+                
+                ## Check that both ele_id and neighbor_id belong to the current section. 
+                assert(ele_id in section_elements[sec_id] and neighbor_id in section_elements[sec_id])
+                
                 DAS_before_this_element = model.vertex(model.element(neighbor_id).vertex(2)).das()
                 this_DAS_min            = DAS_before_this_element + model.vertex(model.element(ele_id).vertex(0)).xyz().dist( model.vertex(model.element(neighbor_id).vertex(2)).xyz() )
                 this_DAS_max            = this_DAS_min + element_length
@@ -253,8 +285,50 @@ for sec_id in section_elements.keys():
                 model.vertex( model.element(ele_id).vertex(1) ).set_das(this_DAS_min)
                 model.vertex( model.element(ele_id).vertex(2) ).set_das(this_DAS_max)
 
+
+
+
+###### Don't need this. Mesher does the remap_continuous upon model import/export that executes exactly the remap specified below.
+## -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-
+#####  Create another element remap      
+#final_element_remap = quakelib.ModelRemapping()
+#
+##### Still not done yet, correct the order of elements along the fault. We just fixed the order of element IDs 
+###     within a section. But for those faults that originally had sections out of order, the element IDs (when
+###     stepping through them in order) will still jump from section to section out of order with respect to strike.
+#for fault_id in fault_sections.keys():
+#    min_element_id_in_fault    = min(fault_elements[fault_id])
+#    element_index_within_fault = 0
+#    # Loop over the sections in order
+#    for sec_id in sorted(fault_sections[fault_id]):
+#        for ele_id in sorted(section_elements[sec_id]):
+#            ## New ID insures that the element IDs appear in order along the entire fault
+#            new_id = min_element_id_in_fault + element_index_within_fault
+#            
+#            ## Check that we are only applying the remap between element IDs on the same fault
+#            assert(new_id in fault_elements[fault_id] and ele_id in fault_elements[fault_id])
+#            
+#            if ele_id != new_id:            
+#                print("Element {} -> {}".format(ele_id, new_id))
+#                final_element_remap.remap_element(ele_id, new_id)
+#                
+#            element_index_within_fault = element_index_within_fault+1
+#
+### Apply the final element shuffling
+#model.apply_remap(final_element_remap)
+## -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-
+
         
 model.write_files_eqsim(FINAL_UCERF3_FILE_GEO, "", FINAL_UCERF3_FILE_FRIC)
 print("New model files written: {}, {}".format(FINAL_UCERF3_FILE_GEO, FINAL_UCERF3_FILE_FRIC))
+
+
+
+
+
+
+
+
+
 
 

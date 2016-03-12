@@ -36,6 +36,8 @@ REGEX_strings = ['_Subsection_(\d)+', '_2011','_CFM', '_Extension', '_extension'
                 '_North$','_South$', '_north$','_south$', '_East$', '_West$', 
                 '_San_Fernando$', '_Offshore$','_Onshore$']
                 
+subsection_trimmer_reg = '\_Subsection\_[0-9]+$'
+                
 ####  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                
 #### We may want to be less restrictive in the future, not trimming _East, _West, _South, _North.
 #### For example, check out (in the Google Earth KML file) the Ortigalita North and South faults.
@@ -72,12 +74,6 @@ print("------Parsed "+str(len(uniq_faults.keys()))+" Uniquely Named Faults-----"
 # Print the semi-final faults
 #for key, val in uniq_faults.iteritems():
 #    print('{}\t{}'.format(val, key))
-
-########### There are some sections that we specifically do not want to combine into a fault.
-## Look at the North_Branch_Mill_Creek section of the San Andreas, or the Ortigalita North/South sections
-##   and it is apparent. We only want to define fault objects that have continuous DAS values that make sense.
-## You must use the trimmed section name though. Easiest to print out the trimmed names below then grab them.
-sections_to_skip = ["San_Andreas_North_Branch_Mill_Creek","Ortigalita"]
     
 # Loop over the sections again to reset the fault IDs to whichever unique fault matches
 for sec_id in sorted(model.getSectionIDs()):
@@ -92,13 +88,11 @@ for sec_id in sorted(model.getSectionIDs()):
     new_fault_id = None
     new_fault_name = None
     
-    ##print("{} -> {}".format(sec_name,trimmed_name))
+    #print("{} -> {}".format(sec_name,trimmed_name))
     
     # Try to find a special fault name that matches
     for i, spec_fault_name in enumerate(special_faults):
         if trimmed_name.find(spec_fault_name) >= 0:
-            # Need to separate some sections by hand to prevent combining
-            if trimmed_name in sections_to_skip: break
             new_fault_id = special_fault_ids[i]
             new_fault_name = spec_fault_name
             break
@@ -108,6 +102,7 @@ for sec_id in sorted(model.getSectionIDs()):
     #     same unique fault name.
     if new_fault_id is None:
         new_fault_name = trimmed_name
+        
         try:
             new_fault_id = uniq_faults_combined[trimmed_name]
             
@@ -138,15 +133,17 @@ for ele_id in model.getElementIDs():
     this_element = model.element(ele_id)
     if this_element.aseismic() < ASEISMIC_CUT:
         this_element.set_aseismic(0.0)
-    
+
  
 # ============ OUTPUT THE MODIFIED MODEL ==============
-#model.create_faults_minimal()  # Create the fault objects but don't worry about the area/DAS/etc.
-#model.write_file_ascii(SAVE_FILE_TEXT)
-#print("New model file written: {}".format(SAVE_FILE_TEXT))
 model.write_files_eqsim(SAVE_FILE_GEO, "", SAVE_FILE_FRIC)
 print("New model files written: {}, {}".format(SAVE_FILE_GEO,SAVE_FILE_FRIC))
 
+
+######################
+#model.create_faults_minimal()  # Create the fault objects but don't worry about the area/DAS/etc.
+#model.write_file_ascii(SAVE_FILE_TEXT)
+#print("New model file written: {}".format(SAVE_FILE_TEXT))
 
 
     
