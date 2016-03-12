@@ -50,7 +50,7 @@ subsection_trimmer_reg = '\_Subsection\_[0-9]+$'
 #   its easier to match these than cut out each instance of the variant names.
 special_faults = ['Calaveras','Contra_Costa','Death_Valley','Elsinore','Garlock',
                     'Kern_Canyon','San_Andreas','San_Jacinto']
-specific_faults_to_create = ["San_Andreas_North_Branch_Mill_Creek", "Ortigalita_North", "Ortigalita_South", "South_Klamath_Lake_East", "South_Klamath_Lake_West"]
+specific_faults_to_create = ["San_Andreas_North_Branch_Mill_Creek", "Ortigalita_North", "Ortigalita_South", "South_Klamath_Lake_East", "South_Klamath_Lake_West", "San_Jacinto_Lytle_Creek"]
 
 
 
