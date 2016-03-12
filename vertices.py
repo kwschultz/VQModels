@@ -11,15 +11,15 @@ WORKING_DIR = '/Users/kasey/VQModels/'
 
 
 ###!!! This vertex remapper is applied only after using   fault_match.py then sectioning.py then elements.py
-UCERF3_FILE_GEO  = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Geometry.dat'
-UCERF3_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Friction.dat'
+UCERF3_FILE_GEO     = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Geometry.dat'
+UCERF3_FILE_FRIC    = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReFaulted_ReSectioned_ReElemented_AseismicCut_0.11_Friction.dat'
+FINAL_FILE_GEO      = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReIndexed_AseismicCut_0.11_Geometry.dat'
+FINAL_FILE_FRIC     = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReIndexed_AseismicCut_0.11_Friction.dat'
 
-FINAL_FILE_GEO  = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReIndexed_AseismicCut_0.11_Geometry.dat'
-FINAL_FILE_FRIC = WORKING_DIR+'UCERF3/UCERF3_EQSim_ReIndexed_AseismicCut_0.11_Friction.dat'
 
 
 # ======== READ the actual strikes from the original model =========
-STRIKE_FILE = WORKING_DIR+'section_strikes_SAF_fix.txt'  # SAF strikes fixed
+STRIKE_FILE = WORKING_DIR+'section_strikes_with_fixes.txt'  # SAF strikes fixed
 strike_file = open(STRIKE_FILE, 'r')
 section_strikes = {}
 for line in strike_file:
