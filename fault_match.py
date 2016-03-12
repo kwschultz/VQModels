@@ -50,12 +50,8 @@ subsection_trimmer_reg = '\_Subsection\_[0-9]+$'
 #   its easier to match these than cut out each instance of the variant names.
 special_faults = ['Calaveras','Contra_Costa','Death_Valley','Elsinore','Garlock',
                     'Kern_Canyon','San_Andreas','San_Jacinto']
-special_fault_ids = [602,626,246,299,341,544,295,101]
-assert(len(special_fault_ids)==len(special_faults))
+specific_faults_to_create = ["San_Andreas_North_Branch_Mill_Creek", "Ortigalita_North", "Ortigalita_South", "South_Klamath_Lake_East", "South_Klamath_Lake_West"]
 
-# Input the special faults as the first entries in the combined uniq_faults dictionary
-for i, name in enumerate(special_faults):
-    uniq_faults_combined[name] = special_fault_ids[i]
 
 
 # Loop once over sections to determine the unique fault names and IDs
@@ -66,6 +62,7 @@ for sec_id in sorted(model.getSectionIDs()):
     trimmed_name = sec_name
     for REGEX in REGEX_strings:
         trimmed_name = re.sub(REGEX, '', trimmed_name)
+        if trimmed_name in specific_faults_to_create: break
     
     uniq_faults[trimmed_name] = sec_fault_id
     
@@ -82,6 +79,7 @@ for sec_id in sorted(model.getSectionIDs()):
     trimmed_name = sec_name
     for REGEX in REGEX_strings:
         trimmed_name = re.sub(REGEX, '', trimmed_name)
+        if trimmed_name in specific_faults_to_create: break
     
     # ===== These get set if the trimmed name contains a special fault name.
     #           If no match, then it is assumed to be a unique fault.
@@ -92,9 +90,12 @@ for sec_id in sorted(model.getSectionIDs()):
     
     # Try to find a special fault name that matches
     for i, spec_fault_name in enumerate(special_faults):
-        if trimmed_name.find(spec_fault_name) >= 0:
-            new_fault_id = special_fault_ids[i]
-            new_fault_name = spec_fault_name
+        if (trimmed_name.find(spec_fault_name) >= 0) and (trimmed_name not in specific_faults_to_create):        
+            try:
+                new_fault_id = uniq_faults_combined[spec_fault_name]
+            except KeyError:
+                new_fault_id = model.section(sec_id).fault_id()
+                uniq_faults_combined[spec_fault_name] = new_fault_id
             break
     
     # If no match to special faults, then process it as a uniquely named fault.
