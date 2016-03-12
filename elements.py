@@ -238,10 +238,6 @@ for sec_id in section_elements_by_DAS_index.keys():
                 ## Here is the fancy footwork, solving for the new element ID from DAS index
                 new_id = sec_first_element_id + (new_DAS_index*num_elements_at_this_DAS) + i
                 
-                ## Need to be sure that the new_id is an ID that already exists within the model.
-                ##   E.g. we don't want to assign an ID of 1 billion.
-                assert(new_id in list(model.getElementIDs()))
-                
                 ## We also need to check that we are only reassigning IDs within a section. We don't 
                 ##   want element IDs from one section to be remapped to another section.
                 assert(new_id in section_elements[sec_id] and ele_id in section_elements[sec_id])
