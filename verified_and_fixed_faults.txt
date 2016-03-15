@@ -1,0 +1,19 @@
+### The following faults have had their strike angles verified
+###   by checking the USGS fault database.
+### The corrected strikes should be updated in section_strikes_with_fixes.txt
+
+Elsinore
+Garlock
+Homestead Valley
+Hollywood
+Johnson Valley
+Kickapoo
+Newport/Inglewood
+Palos Verdes
+Puente Hills
+Raymond
+San Andreas
+Santa Monica
+Santa Monica Bay
+Sierra Madre
+Whittier
