@@ -189,14 +189,12 @@ for fid in fault_ids:
         ############sys.stdout.write("{} -> {}\t{}\tat\t{}\n".format(sid,first_section_id+i,model.section(sid).name(), dist))
         # Write the ordered sections to file as well for comparing.
         #sections.write("{} -> {}\t{}\tat\t{}\n".format(sid,first_section_id+i,model.section(sid).name(), dist))
-        # Be sure not to do anything if it's already in order (used for testing, 
-        #       re run the script on the edited and saved fault model)
         # Re-assign the section id so it's in order
         new_sec_id_map[sid] = ordered_section_ids[i]
 
 
-
-sys.stdout.write("-=-=-=-=-=-  Remapped IDs for {:.2f}% of sections  -==-=-=-=-=-=\n".format(len(new_sec_id_map.keys())*100.0/len(model.getSectionIDs())))
+# We're now "remapping" every section ID, even when it gets remapped to itself.
+#sys.stdout.write("-=-=-=-=-=-  Remapped IDs for {:.2f}% of sections  -==-=-=-=-=-=\n".format(len(new_sec_id_map.keys())*100.0/len(model.getSectionIDs())))
 
 ####  Create the section remap      
 section_remap = quakelib.ModelRemapping()
