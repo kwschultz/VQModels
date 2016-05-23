@@ -1,7 +1,8 @@
 # fault_id: ID number of the parent fault of this section
+# sec_id: ID number of this section
 # num_points: Number of trace points comprising this section
 # section_name: Name of the section
-9 46 Dasht-e-Moghan
+9 9 46 Dasht-e-Moghan
 # latitude longitude altitude depth slip-rate aseismic rake dip lame_mu lame_lambda
 39.228 47.046 -0 15000 0.16482 0 -90 40 3e+010 3.2e+010
 39.235 47.068 -0 15000 0.16482 0 -90 40 3e+010 3.2e+010

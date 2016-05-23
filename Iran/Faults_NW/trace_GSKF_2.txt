@@ -1,7 +1,8 @@
 # fault_id: ID number of the parent fault of this section
+# sec_id: ID number of this section
 # num_points: Number of trace points comprising this section
 # section_name: Name of the section
-175 31 GSKF_2
+175 175 31 GSKF_2
 # latitude longitude altitude depth slip-rate aseismic rake dip lame_mu lame_lambda
 38.666 44.716 -0 15000 0.5281 0 180 90 3e+010 3.2e+010
 38.653 44.732 -0 15000 0.5281 0 180 90 3e+010 3.2e+010

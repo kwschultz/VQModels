@@ -1,7 +1,8 @@
 # fault_id: ID number of the parent fault of this section
+# sec_id: ID number of this section
 # num_points: Number of trace points comprising this section
 # section_name: Name of the section
-24 33 Sangavar
+24 24 33 Sangavar
 # latitude longitude altitude depth slip-rate aseismic rake dip lame_mu lame_lambda
 37.676 48.322 -0 15000 0.1383 0 0 60 3e+010 3.2e+010
 37.694 48.323 -0 15000 0.1383 0 0 60 3e+010 3.2e+010

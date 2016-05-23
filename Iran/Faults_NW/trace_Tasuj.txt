@@ -1,7 +1,8 @@
 # fault_id: ID number of the parent fault of this section
+# sec_id: ID number of this section
 # num_points: Number of trace points comprising this section
 # section_name: Name of the section
-172 30 Tasuj
+172 172 30 Tasuj
 # latitude longitude altitude depth slip-rate aseismic rake dip lame_mu lame_lambda
 38.396 45.503 -0 15000 0.254 0 180 60 3e+010 3.2e+010
 38.385 45.485 -0 15000 0.254 0 180 60 3e+010 3.2e+010

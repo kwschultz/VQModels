@@ -1,7 +1,8 @@
 # fault_id: ID number of the parent fault of this section
+# sec_id: ID number of this section
 # num_points: Number of trace points comprising this section
 # section_name: Name of the section
-162 52 Chalderan
+162 162 52 Chalderan
 # latitude longitude altitude depth slip-rate aseismic rake dip lame_mu lame_lambda
 39.058 44.095 -0 15000 0.6782 0 180 90 3e+010 3.2e+010
 39.066 44.074 -0 15000 0.6782 0 180 90 3e+010 3.2e+010

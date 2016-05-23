@@ -1,7 +1,8 @@
 # fault_id: ID number of the parent fault of this section
+# sec_id: ID number of this section
 # num_points: Number of trace points comprising this section
 # section_name: Name of the section
-33 29 Bozqush
+33 33 29 Bozqush
 # latitude longitude altitude depth slip-rate aseismic rake dip lame_mu lame_lambda
 38.232 48.208 -0 15000 0.1189 0 0 55 3e+010 3.2e+010
 38.217 48.196 -0 15000 0.1189 0 0 55 3e+010 3.2e+010

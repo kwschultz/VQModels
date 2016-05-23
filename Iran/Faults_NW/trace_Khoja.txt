@@ -1,7 +1,8 @@
 # fault_id: ID number of the parent fault of this section
+# sec_id: ID number of this section
 # num_points: Number of trace points comprising this section
 # section_name: Name of the section
-174 70 Khoja
+174 174 70 Khoja
 # latitude longitude altitude depth slip-rate aseismic rake dip lame_mu lame_lambda
 39.087 46.356 -0 15000 0.1529 0 180 90 3e+010 3.2e+010
 39.072 46.369 -0 15000 0.1529 0 180 90 3e+010 3.2e+010

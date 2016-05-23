@@ -1,7 +1,8 @@
 # fault_id: ID number of the parent fault of this section
+# sec_id: ID number of this section
 # num_points: Number of trace points comprising this section
 # section_name: Name of the section
-108 47 Masuleh
+108 108 47 Masuleh
 # latitude longitude altitude depth slip-rate aseismic rake dip lame_mu lame_lambda
 36.935 49.008 -0 15000 0.1564 0 0 50 3e+010 3.2e+010
 36.95 48.996 -0 15000 0.1564 0 0 50 3e+010 3.2e+010
